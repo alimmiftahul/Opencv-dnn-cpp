@@ -13,7 +13,7 @@
     cd build
     cmake ../
     make
-    ./build/yolo_single_frame
+    ./yolo_single_frame
     ```
 
   * using pkg-config:
@@ -23,7 +23,7 @@
     ./yolo_Single_frame
     ```
 
-#### Reference By
+##### Reference By
 
 Want to become an expert in AI? [AI Courses by OpenCV](https://opencv.org/courses/) is a great place to start. 
 
