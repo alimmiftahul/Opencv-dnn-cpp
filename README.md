@@ -1,7 +1,8 @@
 ### Download model
+  ```bash
   chmod 755 install_model.sh
   ./install_model.sh
-
+  ```
 ### How to run the code 
 
 * C++:
@@ -12,6 +13,7 @@
     cd build
     cmake ../
     make
+    ./build/yolo_single_frame
     ```
 
   * using pkg-config:
