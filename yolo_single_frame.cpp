@@ -29,13 +29,7 @@ vector<String> getOutputsNames(const Net& net);
 
 int main(int argc, char** argv)
 {
-    CommandLineParser parser(argc, argv, keys);
-    parser.about("Use this script to run object detection using YOLO3 in OpenCV.");
-    if (parser.has("help"))
-    {
-        parser.printMessage();
-        return 0;
-    }
+    
     // Load names of classes
     string classesFile = "coco.names";
     ifstream ifs(classesFile.c_str());
