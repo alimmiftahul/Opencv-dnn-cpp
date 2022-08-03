@@ -51,22 +51,22 @@ int Detector::Process()
 	}
 		// break;
     blobFromImage(m_frame, m_blob, 1/255.0, cv::Size(m_InpWidth, m_InpHeight), Scalar(0,0,0), true, false);
-	//Sets the input to the network
-	m_net.setInput(m_blob);
-	
-	// Runs the forward pass to get output of the output layers
-	m_net.forward(m_outs, GetOutputsNames(m_net));
-	
-	// Remove the bounding boxes with low confidence
-	PostProcess(m_frame, m_outs);
-	
-	// Put efficiency information. The function getPerfProfile returns the overall time for inference(t) and the timings for each of the layers(in layersTimes)
-	m_freq = getTickFrequency() / 1000;
-	m_time = m_net.getPerfProfile(m_layersTimes) / m_freq;
-	m_label = format("Inference time for a frame : %.2f ms", m_time);
-	putText(m_frame, m_label, Point(0, 15), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255));
-	imshow(m_WinName, m_frame);
-	// EndPrresocess();
+    //Sets the input to the network
+    m_net.setInput(m_blob);
+
+    // Runs the forward pass to get output of the output layers
+    m_net.forward(m_outs, GetOutputsNames(m_net));
+
+    // Remove the bounding boxes with low confidence
+    PostProcess(m_frame, m_outs);
+
+    // Put efficiency information. The function getPerfProfile returns the overall time for inference(t) and the timings for each of the layers(in layersTimes)
+    m_freq = getTickFrequency() / 1000;
+    m_time = m_net.getPerfProfile(m_layersTimes) / m_freq;
+    m_label = format("Inference time for a frame : %.2f ms", m_time);
+    putText(m_frame, m_label, Point(0, 15), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255));
+    imshow(m_WinName, m_frame);
+    // EndPrresocess();
 }
 int Detector::EndProcess()
 {
