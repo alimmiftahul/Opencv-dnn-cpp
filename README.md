@@ -7,20 +7,10 @@
 
 * C++:
 
-  * using cmake :
+  * using makefile :
     ```bash
-    mkdir build
-    cd build
-    cmake ../
-    make
-    ./yolo_single_frame
-    ```
-
-  * using pkg-config:
-
-    ```bash
-    g++ yolo_single_frame.cpp -o yolo_single_frame `pkg-config --cflags --libs opencv4`
-    ./yolo_Single_frame
+    make all
+    ./demo
     ```
 
 #### Reference By
