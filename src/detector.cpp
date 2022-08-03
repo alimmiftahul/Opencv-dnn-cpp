@@ -17,10 +17,10 @@ int Detector::Init()
     m_InpHeight = 416;  
     m_clasessFile = "/home/rscuad/Documents/alim_skripsi/Opencv-dnn-cpp/Data/coco.names";
     ifstream ifs(m_clasessFile.c_str());
-	while (getline(ifs, m_line)) m_clasess.push_back(m_line);
-	m_modelConfiguration = "/home/rscuad/Documents/alim_skripsi/Opencv-dnn-cpp/Data/yolov3.cfg";
-	m_modelWeights = "/home/rscuad/Documents/alim_skripsi/Opencv-dnn-cpp/Data/yolov3.weights";
-    
+    while (getline(ifs, m_line)) m_clasess.push_back(m_line);
+    m_modelConfiguration = "/home/rscuad/Documents/alim_skripsi/Opencv-dnn-cpp/Data/yolov3.cfg";
+    m_modelWeights = "/home/rscuad/Documents/alim_skripsi/Opencv-dnn-cpp/Data/yolov3.weights";
+
     m_net = readNetFromDarknet(m_modelConfiguration, m_modelWeights);
     m_net.setPreferableBackend(DNN_TARGET_CPU);
 
@@ -28,7 +28,7 @@ int Detector::Init()
     m_WinName = "Deep learning object detection in OpenCV";
     namedWindow(m_WinName, WINDOW_NORMAL);
     // cap.set(CAP_PROP_FRAME_WIDTH ,320); // 640
-	// cap.set(CAP_PROP_FRAME_HEIGHT,240); 
+    // cap.set(CAP_PROP_FRAME_HEIGHT,240); 
 	if (!cap.isOpened())
 	{
 		std::cout << "Cannot open the video cam" << std::endl;
@@ -75,7 +75,7 @@ int Detector::EndProcess()
 }
 void Detector::DrawPred(int classId, float conf, int left, int top, int right, int bottom, Mat& frame)
 {
-	 rectangle(frame, Point(left, top), Point(right, bottom), Scalar(255, 178, 50), 3);
+	rectangle(frame, Point(left, top), Point(right, bottom), Scalar(255, 178, 50), 3);
     
     //Get the label for the class name and its confidence
     std::string label = format("%.2f", conf);
