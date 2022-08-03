@@ -99,7 +99,7 @@ void Detector::DrawPred(int classId, float conf, int left, int top, int right, i
 }
 void Detector::PostProcess(Mat& frame, const vector<Mat>& outs)
 {
-	vector<int> classIds;
+    vector<int> classIds;
     vector<float> confidences;
     vector<Rect> boxes;
     
