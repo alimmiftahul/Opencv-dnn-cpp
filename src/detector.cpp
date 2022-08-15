@@ -12,58 +12,70 @@
 int Detector::Init()
 {
     m_confThreshold = 0.6; // Confidence threshold
-    m_nmsThreshold = 0.4; 
-    m_InpWidth = 416;  // Width of network's input image
-    m_InpHeight = 416;  
+    m_nmsThreshold = 0.4; ;
     m_clasessFile = "/home/rscuad/Documents/alim_skripsi/Opencv-dnn-cpp/Data/coco.names";
     ifstream ifs(m_clasessFile.c_str());
     while (getline(ifs, m_line)) m_clasess.push_back(m_line);
-    m_modelConfiguration = "/home/rscuad/Documents/alim_skripsi/Opencv-dnn-cpp/Data/yolov3.cfg";
-    m_modelWeights = "/home/rscuad/Documents/alim_skripsi/Opencv-dnn-cpp/Data/yolov3.weights";
+    m_modelConfiguration = "/home/rscuad/Documents/alim_skripsi/Opencv-dnn-cpp/Data/yolo4-tiny.cfg";
+    m_modelWeights = "/home/rscuad/Documents/alim_skripsi/Opencv-dnn-cpp/Data/yolov4_goal.weights";
 
     m_net = readNetFromDarknet(m_modelConfiguration, m_modelWeights);
-    m_net.setPreferableBackend(DNN_TARGET_CPU);
 
     cap.open(0);
+    cap.set(CAP_PROP_FRAME_WIDTH ,640); // 320,640,1920
+    cap.set(CAP_PROP_FRAME_HEIGHT,480);//240,480,1080
     m_WinName = "Deep learning object detection in OpenCV";
     namedWindow(m_WinName, WINDOW_NORMAL);
-    // cap.set(CAP_PROP_FRAME_WIDTH ,320); // 640
-    // cap.set(CAP_PROP_FRAME_HEIGHT,240); 
 	if (!cap.isOpened())
 	{
 		std::cout << "Cannot open the video cam" << std::endl;
 		return -1;
 	}
-	
+    // fps count variabel
+    timeBegin = std::time(0);
+    frameCounter = 0;
+    tick = 0;
     
 }
 int Detector::Process()
 {
-    cap.read(m_frame);
-    resize(m_frame, m_frame, Size(480, 360));
-	
-	// Stop the program if reached end of video
+    cap>>m_frame;
+    resize(m_frame, m_frame, Size(800, 600));
 	if (m_frame.empty()) {
 		std::cout << "image not found" << std::endl;
-		// std::cout << "Output file is stored as " << outputFile << std::endl;
-		// waitKey(3000);
 		return -1;
 	}
-		// break;
-    blobFromImage(m_frame, m_blob, 1/255.0, cv::Size(m_InpWidth, m_InpHeight), Scalar(0,0,0), true, false);
-    //Sets the input to the network
-    m_net.setInput(m_blob);
+    blobFromImage(m_frame, m_blob, 1/255.0, cv::Size(416, 416), Scalar(0,0,0), true, false);
 
-    // Runs the forward pass to get output of the output layers
-    m_net.forward(m_outs, GetOutputsNames(m_net));
+    
+    m_net.setInput(m_blob); //Sets the input to the network
 
-    // Remove the bounding boxes with low confidence
+    
+    m_net.forward(m_outs, GetOutputsNames(m_net)); // Runs the forward pass to get output of the output layers
+
+    /*
+     fps algo
+     */
+    frameCounter++;
+    timeNow = std::time(0) - timeBegin;
+    if (timeNow - tick >= 1)
+    {
+        tick++;
+        fps = frameCounter;
+        frameCounter = 0;
+    }
+
     PostProcess(m_frame, m_outs);
-
-    // Put efficiency information. The function getPerfProfile returns the overall time for inference(t) and the timings for each of the layers(in layersTimes)
+    /*
+    time video
+    */
     m_freq = getTickFrequency() / 1000;
     m_time = m_net.getPerfProfile(m_layersTimes) / m_freq;
     m_label = format("Inference time for a frame : %.2f ms", m_time);
+    /*
+    show
+    */
+    putText(m_frame, format("Average FPS=%d", fps ), Point(0, 50), FONT_HERSHEY_DUPLEX, 1, Scalar(0, 255, 0), 2, false);
     putText(m_frame, m_label, Point(0, 15), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255));
     imshow(m_WinName, m_frame);
     // EndPrresocess();
@@ -95,7 +107,7 @@ void Detector::DrawPred(int classId, float conf, int left, int top, int right, i
     Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
     top = max(top, labelSize.height);
     rectangle(frame, Point(left, top - round(1.5*labelSize.height)), Point(left + round(1.5*labelSize.width), top + baseLine), Scalar(255, 255, 255), FILLED);
-    putText(frame, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(0,0,0),1);
+    putText(frame, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 0.65 , Scalar(0,0,0),1); //0.75
 }
 void Detector::PostProcess(Mat& frame, const vector<Mat>& outs)
 {

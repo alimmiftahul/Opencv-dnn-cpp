@@ -15,6 +15,7 @@
 #include <opencv2/dnn.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
+#include <ctime>
 
 using namespace cv;
 using namespace dnn;
@@ -44,6 +45,12 @@ class Detector
         int m_InpWidth ;  // Width of network's input image
         int m_InpHeight ; 
         vector<String> names;
+        int frameCounter ;
+        int tick ;
+        int fps;
+        time_t timeBegin;
+        time_t timeNow ;
+        
 
     public :
         void PostProcess(Mat& frame, const vector<Mat>& out);
