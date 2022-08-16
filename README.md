@@ -14,7 +14,7 @@
 
 #### Reference By
 
-Want to become an expert in AI? [AI Courses by OpenCV](https://opencv.org/courses/) is a great place to start, and learn in [Learn opencv](https://learnopencv.com/)
+Want to become an expert in AI? [AI Courses by OpenCV](https://opencv.org/courses/) is a great place to start, and this code develop by[Learn opencv](https://learnopencv.com/)
 
 <a href="https://opencv.org/courses/">
 <p align="center"> 
