@@ -1,6 +1,6 @@
 /*
  * Filename: Opencv-dnn-cpp/src/main.cpp
- * Author: rscuad
+ * Author: alim
  * 
  * Copyright (c) 2022 Your Company
  */

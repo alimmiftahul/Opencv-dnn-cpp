@@ -25,6 +25,11 @@ using namespace std;
 class Detector
 {
     private :
+        struct Point2D{
+                double X;
+                double Y;
+        };
+        Point2D pos;
         VideoCapture cap;
         String  m_modelConfiguration,
                 m_modelWeights;
@@ -37,8 +42,8 @@ class Detector
         string m_WinName;
         vector<Mat> m_outs;
         vector<double> m_layersTimes;
-        double m_freq;
-        double m_time;
+        double  m_freq;
+        double  m_time;
         string  m_label,
                 m_clasessFile,
                 m_line;
@@ -54,11 +59,12 @@ class Detector
 
     public :
         void PostProcess(Mat& frame, const vector<Mat>& out);
-        void DrawPred(int classId, float conf, int left, int top, int right, int bottom, Mat& frame);
+        int DrawPred(int classId, float conf, int left, int top, int right, int bottom, Mat& frame);
         vector<String> GetOutputsNames(const Net& net);
         int EndProcess();
         int Process();
         void object();
+        int tracking();
         int Init();
 };
 

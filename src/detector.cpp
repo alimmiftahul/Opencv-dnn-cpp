@@ -85,10 +85,10 @@ int Detector::EndProcess()
      if (cv::waitKey(30) == 27 ) 
         return 0;
 }
-void Detector::DrawPred(int classId, float conf, int left, int top, int right, int bottom, Mat& frame)
+int Detector::DrawPred(int classId, float conf, int left, int top, int right, int bottom, Mat& frame)
 {
-	rectangle(frame, Point(left, top), Point(right, bottom), Scalar(255, 178, 50), 3);
-    
+	rectangle(frame, Point(left, top), Point(right, bottom), Scalar(0, 128, 0), 3);
+    // circle(frame, Point(bottom, top),2,  CV_RGB(20,150,20), -1);
     //Get the label for the class name and its confidence
     std::string label = format("%.2f", conf);
     if (!m_clasess.empty())
@@ -99,14 +99,14 @@ void Detector::DrawPred(int classId, float conf, int left, int top, int right, i
         std::cout<<"x : "<<left<<std::endl;
         std::cout<<"y : "<<top<<std::endl;
         std::cout<<"-----------------------\n";
-
     }
     
     //Display the label at the top of the bounding box
     int baseLine;
     Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
     top = max(top, labelSize.height);
-    rectangle(frame, Point(left, top - round(1.5*labelSize.height)), Point(left + round(1.5*labelSize.width), top + baseLine), Scalar(255, 255, 255), FILLED);
+   
+    rectangle(frame,Point(left, top - round(1.5*labelSize.height)) , Point(left + round(1.5*labelSize.width), top + baseLine), Scalar(255, 255, 255), FILLED);
     putText(frame, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 0.65 , Scalar(0,0,0),1); //0.75
 }
 void Detector::PostProcess(Mat& frame, const vector<Mat>& outs)
@@ -136,7 +136,6 @@ void Detector::PostProcess(Mat& frame, const vector<Mat>& outs)
                 int height = (int)(data[3] * frame.rows);
                 int left = centerX - width / 2;
                 int top = centerY - height / 2;
-                
                 classIds.push_back(classIdPoint.x);
                 confidences.push_back((float)confidence);
                 boxes.push_back(Rect(left, top, width, height));
@@ -152,9 +151,14 @@ void Detector::PostProcess(Mat& frame, const vector<Mat>& outs)
     {
         int idx = indices[i];
         Rect box = boxes[idx];
+        Point centerbox;
+        centerbox.x =  box.x + box.width / 2;
+        centerbox.y =  box.y + box.height / 2;
         DrawPred(classIds[idx], confidences[idx], box.x, box.y,
-                 box.x + box.width, box.y + box.height, frame);
+                 box.x + box.width, box.y + box.height, m_frame);
+        circle(m_frame, centerbox, 2, CV_RGB(20,150,20), -1);
     }
+
 
 }
 vector<String> Detector::GetOutputsNames(const Net& net)
@@ -164,11 +168,11 @@ vector<String> Detector::GetOutputsNames(const Net& net)
     {
         //Get the indices of the output layers, i.e. the layers with unconnected outputs
         vector<int> outLayers = net.getUnconnectedOutLayers();
-        
         //get the names of all the layers in the network
         vector<String> layersNames = net.getLayerNames();
-        
-        // Get the names of the output layers in names
+        /*
+            Get the names of the output layers in names
+        */
         names.resize(outLayers.size());
         for (size_t i = 0; i < outLayers.size(); ++i)
         names[i] = layersNames[outLayers[i] - 1];
