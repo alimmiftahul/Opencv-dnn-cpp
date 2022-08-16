@@ -1,9 +1,8 @@
-### Download model
-  ```bash
-  chmod 755 install_model.sh
-  ./install_model.sh
-  ```
-### How to run the code 
+## Required 
+* Opencv 4.6
+* Makefile
+
+## How to run the code 
 
 * C++:
 
