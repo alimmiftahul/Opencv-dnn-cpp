@@ -8,7 +8,16 @@
 
 #include <detector.hpp>
 #include <iostream>
+Detector::Detector()
+: m_goaltopr(false)
+, m_goaltopl(false)
+, m_goalbottomr(false)
+, m_goalbottoml(false)
+, m_robot(false)
+, m_objectcountMax(3)
+{
 
+}
 int Detector::Init()
 {
     m_confThreshold = 0.6; // Confidence threshold
@@ -37,6 +46,24 @@ int Detector::Init()
     tick = 0;
     
 }
+void Detector::DisplayFps(Mat fps_frame)
+{
+    frameCounter++;
+    timeNow = std::time(0) - timeBegin;
+    if (timeNow - tick >= 1)
+    {
+        tick++;
+        fps = frameCounter;
+        frameCounter = 0;
+    }
+    m_freq = getTickFrequency() / 1000;
+    m_time = m_net.getPerfProfile(m_layersTimes) / m_freq;
+    m_label = format("Inference time for a frame : %.2f ms", m_time);
+
+    putText(m_frame, format("FPS : %d", fps ), Point(0, 50), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 255, 0), 2, false);
+    putText(m_frame, m_label, Point(0, 15), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255));
+
+}
 int Detector::Process()
 {
     cap>>m_frame;
@@ -52,31 +79,9 @@ int Detector::Process()
 
     
     m_net.forward(m_outs, GetOutputsNames(m_net)); // Runs the forward pass to get output of the output layers
-
-    /*
-     fps algo
-     */
-    frameCounter++;
-    timeNow = std::time(0) - timeBegin;
-    if (timeNow - tick >= 1)
-    {
-        tick++;
-        fps = frameCounter;
-        frameCounter = 0;
-    }
-
     PostProcess(m_frame, m_outs);
-    /*
-    time video
-    */
-    m_freq = getTickFrequency() / 1000;
-    m_time = m_net.getPerfProfile(m_layersTimes) / m_freq;
-    m_label = format("Inference time for a frame : %.2f ms", m_time);
-    /*
-    show
-    */
-    putText(m_frame, format("Average FPS=%d", fps ), Point(0, 50), FONT_HERSHEY_DUPLEX, 1, Scalar(0, 255, 0), 2, false);
-    putText(m_frame, m_label, Point(0, 15), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255));
+
+    DisplayFps(m_frame);
     imshow(m_WinName, m_frame);
     // EndPrresocess();
 }
@@ -87,7 +92,7 @@ int Detector::EndProcess()
 }
 int Detector::DrawPred(int classId, float conf, int left, int top, int right, int bottom, Mat& frame)
 {
-	rectangle(frame, Point(left, top), Point(right, bottom), Scalar(0, 128, 0), 3);
+	rectangle(frame, Point(left, top), Point(right, bottom), Scalar(0, 0, 255), 3);
     // circle(frame, Point(bottom, top),2,  CV_RGB(20,150,20), -1);
     //Get the label for the class name and its confidence
     std::string label = format("%.2f", conf);
@@ -95,10 +100,6 @@ int Detector::DrawPred(int classId, float conf, int left, int top, int right, in
     {
         CV_Assert(classId <(int)m_clasess.size());
         label = m_clasess[classId] + ":" + label;
-        std::cout<<"class : "<<m_clasess[classId]<<std::endl;
-        std::cout<<"x : "<<left<<std::endl;
-        std::cout<<"y : "<<top<<std::endl;
-        std::cout<<"-----------------------\n";
     }
     
     //Display the label at the top of the bounding box
@@ -106,7 +107,7 @@ int Detector::DrawPred(int classId, float conf, int left, int top, int right, in
     Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
     top = max(top, labelSize.height);
    
-    rectangle(frame,Point(left, top - round(1.5*labelSize.height)) , Point(left + round(1.5*labelSize.width), top + baseLine), Scalar(255, 255, 255), FILLED);
+    rectangle(frame,Point(left, top - round(1.5*labelSize.height)) , Point(left + round(1.5*labelSize.width), top + baseLine), Scalar(0, 0, 255), FILLED);
     putText(frame, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 0.65 , Scalar(0,0,0),1); //0.75
 }
 void Detector::PostProcess(Mat& frame, const vector<Mat>& outs)
@@ -149,18 +150,89 @@ void Detector::PostProcess(Mat& frame, const vector<Mat>& outs)
     NMSBoxes(boxes, confidences, m_confThreshold, m_nmsThreshold, indices);
     for (size_t i = 0; i < indices.size(); ++i)
     {
-        int idx = indices[i];
-        Rect box = boxes[idx];
         Point centerbox;
+        int idx = indices[i];
+        Rect box = boxes[idx];  
         centerbox.x =  box.x + box.width / 2;
         centerbox.y =  box.y + box.height / 2;
         DrawPred(classIds[idx], confidences[idx], box.x, box.y,
                  box.x + box.width, box.y + box.height, m_frame);
-        circle(m_frame, centerbox, 2, CV_RGB(20,150,20), -1);
+        circle(m_frame, centerbox, 2, Scalar(0,0,255), -1);
+        if(classIds[idx] == 0)
+        {
+            m_goaltopr = true;
+            Postopr.X = centerbox.x ;
+            Postopr.Y = centerbox.y ;
+            cout<<"class : "<<classIds[idx]<<endl;
+            cout<<"pojok atas kanan "<<endl;
+            cout<<"X     : "<<centerbox.x<<endl;
+            cout<<"y     : "<<centerbox.y<<endl;
+
+        }
+        if(classIds[idx] == 1)
+        {
+            m_goaltopl = true;
+            Postopl.X = centerbox.x ;
+            Postopl.Y = centerbox.y ;
+            cout<<"class : "<<classIds[idx]<<endl;
+            cout<<"pojok atas kiri "<<endl;
+            cout<<"X     : "<<centerbox.x<<endl;
+            cout<<"y     : "<<centerbox.y<<endl;
+        }
+        if(classIds[idx] == 2)
+        {
+            m_goalbottomr = true;
+            Posbottomr.X = centerbox.x ;
+            Posbottomr.Y = centerbox.y ;
+            cout<<"class : "<<classIds[idx]<<endl;
+            cout<<"pojok bawah kanan  "<<endl;
+            cout<<"X     : "<<centerbox.x<<endl;
+            cout<<"y     : "<<centerbox.y<<endl;
+        }
+        if(classIds[idx] == 3)
+        {
+            m_goalbottoml = true;
+            Posbottoml.X = centerbox.x ;
+            Posbottoml.Y = centerbox.y ;
+            cout<<"class : "<<classIds[idx]<<endl;
+            cout<<"pojok bawah kiri "<<endl;
+            cout<<"X     : "<<centerbox.x<<endl;
+            cout<<"y     : "<<centerbox.y<<endl;
+        }
+        if(classIds[idx] == 4)
+        {
+            m_robot = true;
+            Posrobot.X = centerbox.x ;
+            Posrobot.Y = centerbox.y ;
+            cout<<"class : "<<classIds[idx]<<endl;
+            cout<<"robot"<<endl;
+            cout<<"X     : "<<centerbox.x<<endl;
+            cout<<"Y     : "<<centerbox.y<<endl;
+        }
+        
     }
-
-
 }
+// int Detector::Tracker(bool Object, Point2D PosX, Point2D PosY)
+// {
+//     if(( PosX.X <= 0 && PosY.Y <=0)) {
+// 		m_objectcount++;
+// 		// NOT found
+// 		if(m_objectcount>m_objectcountMax)
+// 		{
+// 			PosX.X = -1.5;//-1;
+// 			PosY.Y = -1.5;//-1;
+// 			object = false;
+// 		}
+// 	} 
+// 	else
+// 	{
+// 		m_objectcount = 0;					
+// 		object = true;
+// 	}
+// 	return object;
+// }
+
+
 vector<String> Detector::GetOutputsNames(const Net& net)
 {
     static vector<String> names;
@@ -178,6 +250,31 @@ vector<String> Detector::GetOutputsNames(const Net& net)
         names[i] = layersNames[outLayers[i] - 1];
     }
     return names;
-
+}
+double Detector::GetX()
+{
+    if(m_goaltopr == true)
+        return Postopr.X;
+    if(m_goaltopl == true)
+        return Postopl.X;
+    if(m_goalbottomr == true)
+        return Posbottomr.X;
+    if(m_goalbottoml == true)
+        return Posbottoml.X;
+     if(m_robot == true)
+        return Posrobot.X;
 }
 
+double Detector::GetY()
+{
+    if(m_goaltopr == true)
+        return Postopr.Y;
+    if(m_goaltopl == true)
+        return Postopl.Y;
+    if(m_goalbottomr == true)
+        return Posbottomr.Y;
+    if(m_goalbottoml == true)
+        return Posbottoml.Y;
+     if(m_robot == true)
+        return Posrobot.Y;
+}

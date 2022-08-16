@@ -12,6 +12,7 @@ int main()
     detector.Init();
     while(1)
     {
+        
         detector.Process();
         detector.EndProcess();
     }

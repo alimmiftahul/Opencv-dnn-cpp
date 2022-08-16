@@ -15,6 +15,8 @@
 #include <opencv2/dnn.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/video.hpp>
+#include <opencv2/tracking.hpp>
 #include <ctime>
 
 using namespace cv;
@@ -29,15 +31,19 @@ class Detector
                 double X;
                 double Y;
         };
-        Point2D pos;
+        Point2D Postopr,
+                Postopl,
+                Posbottomr,
+                Posbottoml,
+                Posrobot;
         VideoCapture cap;
         String  m_modelConfiguration,
                 m_modelWeights;
-        Net m_net;
-        Mat m_frame;
+        Net     m_net;
+        Mat     m_frame;
         vector<string> m_clasess;
-        float m_confThreshold;
-        float m_nmsThreshold;
+        float   m_confThreshold;
+        float   m_nmsThreshold;
         Mat m_blob;
         string m_WinName;
         vector<Mat> m_outs;
@@ -47,24 +53,35 @@ class Detector
         string  m_label,
                 m_clasessFile,
                 m_line;
-        int m_InpWidth ;  // Width of network's input image
-        int m_InpHeight ; 
+        int     m_InpWidth ;  // Width of network's input image
+        int     m_InpHeight ; 
         vector<String> names;
-        int frameCounter ;
-        int tick ;
-        int fps;
-        time_t timeBegin;
-        time_t timeNow ;
+        int     frameCounter ;
+        int     tick ;
+        int     fps;
+        int     m_objectcount,
+                m_objectcountMax;
+        time_t  timeBegin;
+        time_t  timeNow ;
+        bool    m_goalbottomr,
+                m_goalbottoml,
+                m_goaltopr,
+                m_goaltopl,
+                m_robot;
+
         
 
     public :
+        Detector();
         void PostProcess(Mat& frame, const vector<Mat>& out);
         int DrawPred(int classId, float conf, int left, int top, int right, int bottom, Mat& frame);
         vector<String> GetOutputsNames(const Net& net);
         int EndProcess();
         int Process();
-        void object();
-        int tracking();
+        double Tracker(bool Object);
+        double GetX();
+        double GetY();
+        void DisplayFps(Mat fps_frame);
         int Init();
 };
 
