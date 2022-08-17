@@ -35,6 +35,7 @@ class Detector
                 Postopl,
                 Posbottomr,
                 Posbottoml,
+                Posbottom,
                 Posrobot;
         VideoCapture cap;
         String  m_modelConfiguration,
@@ -61,12 +62,14 @@ class Detector
         int     fps;
         int     m_objectcount,
                 m_objectcountMax;
+        int     mode;
         time_t  timeBegin;
         time_t  timeNow ;
         bool    m_goalbottomr,
                 m_goalbottoml,
                 m_goaltopr,
                 m_goaltopl,
+                m_detectbottom,
                 m_robot;
 
         

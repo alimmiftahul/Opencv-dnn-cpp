@@ -14,7 +14,9 @@ Detector::Detector()
 , m_goalbottomr(false)
 , m_goalbottoml(false)
 , m_robot(false)
+, m_detectbottom(false)
 , m_objectcountMax(3)
+, mode(0)
 {
 
 }
@@ -150,7 +152,7 @@ void Detector::PostProcess(Mat& frame, const vector<Mat>& outs)
     NMSBoxes(boxes, confidences, m_confThreshold, m_nmsThreshold, indices);
     for (size_t i = 0; i < indices.size(); ++i)
     {
-        Point centerbox;
+        Point centerbox, PosBottom;
         int idx = indices[i];
         Rect box = boxes[idx];  
         centerbox.x =  box.x + box.width / 2;
@@ -172,6 +174,7 @@ void Detector::PostProcess(Mat& frame, const vector<Mat>& outs)
         if(classIds[idx] == 1)
         {
             m_goaltopl = true;
+            m_detectbottom = false;
             Postopl.X = centerbox.x ;
             Postopl.Y = centerbox.y ;
             cout<<"class : "<<classIds[idx]<<endl;
@@ -182,18 +185,24 @@ void Detector::PostProcess(Mat& frame, const vector<Mat>& outs)
         if(classIds[idx] == 2)
         {
             m_goalbottomr = true;
+            m_detectbottom = false;
             Posbottomr.X = centerbox.x ;
             Posbottomr.Y = centerbox.y ;
             cout<<"class : "<<classIds[idx]<<endl;
             cout<<"pojok bawah kanan  "<<endl;
-            cout<<"X     : "<<centerbox.x<<endl;
-            cout<<"y     : "<<centerbox.y<<endl;
+            cout<<"X     : "<<box1.x<<endl;
+            cout<<"y     : "<<box1.y<<endl;
+            // cout<<"X     : "<<centerbox.x<<endl;
+            // cout<<"y     : "<<centerbox.y<<endl;
         }
         if(classIds[idx] == 3)
         {
             m_goalbottoml = true;
+            m_detectbottom = false;
+            cout<<m_goalbottoml<<endl;
             Posbottoml.X = centerbox.x ;
             Posbottoml.Y = centerbox.y ;
+
             cout<<"class : "<<classIds[idx]<<endl;
             cout<<"pojok bawah kiri "<<endl;
             cout<<"X     : "<<centerbox.x<<endl;
@@ -209,8 +218,24 @@ void Detector::PostProcess(Mat& frame, const vector<Mat>& outs)
             cout<<"X     : "<<centerbox.x<<endl;
             cout<<"Y     : "<<centerbox.y<<endl;
         }
-        
+        if(m_goalbottoml == true && m_goalbottomr == true)
+        {
+            cout<<"center================================== "<<endl;
+            Posbottom.X = (Posbottomr.X + Posbottoml.X)/2 ;
+            Posbottom.Y = (Posbottomr.Y + Posbottoml.Y)/2  ;
+            PosBottom.x = Posbottom.X;
+            PosBottom.y = Posbottom.Y;
+            cout<<"X     : "<<PosBottom.x<<endl;
+            cout<<"Y    : "<<PosBottom.y<<endl;
+            circle(m_frame, PosBottom, 2, Scalar(0,0,255), -1);
+        }
+        cout<<"1 : "<<m_goaltopr<<endl;
+        cout<<"2 : "<<m_goaltopl<<endl;
+        cout<<"3 : "<<m_goalbottom<<endl;
+        cout<<"4 : "<<m_goalbottoml<<endl;
+       
     }
+    
 }
 // int Detector::Tracker(bool Object, Point2D PosX, Point2D PosY)
 // {
