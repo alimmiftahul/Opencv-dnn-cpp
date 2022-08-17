@@ -36,7 +36,10 @@ class Detector
                 Posbottomr,
                 Posbottoml,
                 Posbottom,
-                Posrobot;
+                Posrobot,
+                m_goalPos;
+
+
         VideoCapture cap;
         String  m_modelConfiguration,
                 m_modelWeights;
@@ -70,7 +73,8 @@ class Detector
                 m_goaltopr,
                 m_goaltopl,
                 m_detectbottom,
-                m_robot;
+                m_robot,
+                m_goal;
 
         
 

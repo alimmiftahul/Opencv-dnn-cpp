@@ -9,14 +9,11 @@
 #include <detector.hpp>
 #include <iostream>
 Detector::Detector()
-: m_goaltopr(false)
-, m_goaltopl(false)
-, m_goalbottomr(false)
-, m_goalbottoml(false)
-, m_robot(false)
+: m_robot(false)
 , m_detectbottom(false)
 , m_objectcountMax(3)
 , mode(0)
+, m_goal(false)
 {
 
 }
@@ -32,7 +29,8 @@ int Detector::Init()
 
     m_net = readNetFromDarknet(m_modelConfiguration, m_modelWeights);
 
-    cap.open(0);
+    // cap.open(0);
+    imread()
     cap.set(CAP_PROP_FRAME_WIDTH ,640); // 320,640,1920
     cap.set(CAP_PROP_FRAME_HEIGHT,480);//240,480,1080
     m_WinName = "Deep learning object detection in OpenCV";
@@ -145,14 +143,21 @@ void Detector::PostProcess(Mat& frame, const vector<Mat>& outs)
             }
         }
     }
+
+
+    bool    m_goalbottomr = false,
+            m_goalbottoml = false,
+            m_goaltopr = false,
+            m_goaltopl = false;
     
     // Perform non maximum suppression to eliminate redundant overlapping boxes with
     // lower confidences
     vector<int> indices;
+
     NMSBoxes(boxes, confidences, m_confThreshold, m_nmsThreshold, indices);
     for (size_t i = 0; i < indices.size(); ++i)
     {
-        Point centerbox, PosBottom;
+        Point centerbox;
         int idx = indices[i];
         Rect box = boxes[idx];  
         centerbox.x =  box.x + box.width / 2;
@@ -160,6 +165,7 @@ void Detector::PostProcess(Mat& frame, const vector<Mat>& outs)
         DrawPred(classIds[idx], confidences[idx], box.x, box.y,
                  box.x + box.width, box.y + box.height, m_frame);
         circle(m_frame, centerbox, 2, Scalar(0,0,255), -1);
+        
         if(classIds[idx] == 0)
         {
             m_goaltopr = true;
@@ -218,44 +224,80 @@ void Detector::PostProcess(Mat& frame, const vector<Mat>& outs)
             cout<<"X     : "<<centerbox.x<<endl;
             cout<<"Y     : "<<centerbox.y<<endl;
         }
-        if(m_goalbottoml == true && m_goalbottomr == true)
-        {
-            cout<<"center================================== "<<endl;
-            Posbottom.X = (Posbottomr.X + Posbottoml.X)/2 ;
-            Posbottom.Y = (Posbottomr.Y + Posbottoml.Y)/2  ;
-            PosBottom.x = Posbottom.X;
-            PosBottom.y = Posbottom.Y;
-            cout<<"X     : "<<PosBottom.x<<endl;
-            cout<<"Y    : "<<PosBottom.y<<endl;
-            circle(m_frame, PosBottom, 2, Scalar(0,0,255), -1);
-        }
+        // if(m_goalbottoml == true && m_goalbottomr == true)
+        // {
+        //     cout<<"center================================== "<<endl;
+        //     Posbottom.X = (Posbottomr.X + Posbottoml.X)/2 ;
+        //     Posbottom.Y = (Posbottomr.Y + Posbottoml.Y)/2  ;
+        //     PosBottom.x = Posbottom.X;
+        //     PosBottom.y = Posbottom.Y;
+        //     cout<<"X     : "<<PosBottom.x<<endl;
+        //     cout<<"Y    : "<<PosBottom.y<<endl;
+        //     circle(m_frame, PosBottom, 2, Scalar(0,0,255), -1);
+        // }
+
+
+        
         cout<<"1 : "<<m_goaltopr<<endl;
         cout<<"2 : "<<m_goaltopl<<endl;
-        cout<<"3 : "<<m_goalbottom<<endl;
+        cout<<"3 : "<<m_goalbottomr<<endl;
         cout<<"4 : "<<m_goalbottoml<<endl;
        
     }
     
+
+    //calculate goall
+    {
+        Point PosBottom, PosTop;
+
+        if(m_goalbottoml == true && m_goalbottomr == true){
+            m_goalPos.X  = (Posbottomr.X + Posbottoml.X)/2 ;
+            m_goalPos.Y = (Posbottomr.Y + Posbottoml.Y)/2 ;
+            PosBottom.x = m_goalPos.X ;
+            PosBottom.y = m_goalPos.Y;
+            cout<<"X     : "<<PosBottom.x<<endl;
+            cout<<"Y    : "<<PosBottom.y<<endl;
+            circle(m_frame, PosBottom, 2, Scalar(0,0,255), -1);
+            m_goal = true;
+        }
+        
+        else if(m_goaltopl == true && m_goaltopl == true){
+            
+            m_goalPos.X = (Postopr.X + Postopl.X)/2 ;
+            m_goalPos.Y = (Postopr.Y + Postopl.Y)/2 ;
+
+            PosTop.x = m_goalPos.X;
+            PosTop.y = m_goalPos.Y;
+            cout<<"X     : "<<PosTop.x<<endl;
+            cout<<"Y    : "<<PosTop.y<<endl;
+            circle(m_frame, PosTop, 2, Scalar(0,0,255), -1);
+            m_goal = true;
+        }
+    }
+
 }
-// int Detector::Tracker(bool Object, Point2D PosX, Point2D PosY)
-// {
-//     if(( PosX.X <= 0 && PosY.Y <=0)) {
-// 		m_objectcount++;
-// 		// NOT found
-// 		if(m_objectcount>m_objectcountMax)
-// 		{
-// 			PosX.X = -1.5;//-1;
-// 			PosY.Y = -1.5;//-1;
-// 			object = false;
-// 		}
-// 	} 
-// 	else
-// 	{
-// 		m_objectcount = 0;					
-// 		object = true;
-// 	}
-// 	return object;
-// }
+
+
+
+int Detector::Tracker(bool Object, Point2D PosX, Point2D PosY)
+{
+    if(( PosX.X <= 0 && PosY.Y <=0)) {
+		m_objectcount++;
+		// NOT found
+		if(m_objectcount>m_objectcountMax)
+		{
+			PosX.X = -1.5;//-1;
+			PosY.Y = -1.5;//-1;
+			object = false;
+		}
+	} 
+	else
+	{
+		m_objectcount = 0;					
+		object = true;
+	}
+	return object;
+}
 
 
 vector<String> Detector::GetOutputsNames(const Net& net)
@@ -276,30 +318,19 @@ vector<String> Detector::GetOutputsNames(const Net& net)
     }
     return names;
 }
-double Detector::GetX()
+
+bool Detector::GetGoal()
 {
-    if(m_goaltopr == true)
-        return Postopr.X;
-    if(m_goaltopl == true)
-        return Postopl.X;
-    if(m_goalbottomr == true)
-        return Posbottomr.X;
-    if(m_goalbottoml == true)
-        return Posbottoml.X;
-     if(m_robot == true)
-        return Posrobot.X;
+    return m_goal;
 }
 
-double Detector::GetY()
+
+double Detector::GetGoalX()
 {
-    if(m_goaltopr == true)
-        return Postopr.Y;
-    if(m_goaltopl == true)
-        return Postopl.Y;
-    if(m_goalbottomr == true)
-        return Posbottomr.Y;
-    if(m_goalbottoml == true)
-        return Posbottoml.Y;
-     if(m_robot == true)
-        return Posrobot.Y;
+    return m_goalPos.x;
+}
+
+double Detector::GetGoalY()
+{
+    return m_goalPos.y;
 }

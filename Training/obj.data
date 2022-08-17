@@ -2,4 +2,4 @@ classes = 4
 train = data/train.txt
 valid = data/test.txt
 names = data/obj.names
-backup = ../yolov4/backup/
+backup = ../yolov4/
