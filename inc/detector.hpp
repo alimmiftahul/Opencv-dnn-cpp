@@ -86,8 +86,9 @@ class Detector
         int EndProcess();
         int Process();
         double Tracker(bool Object);
-        double GetX();
-        double GetY();
+        double GetGoalX();
+        double GetGoalY();
+        bool GetGoal();
         void DisplayFps(Mat fps_frame);
         int Init();
 };

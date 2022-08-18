@@ -29,8 +29,7 @@ int Detector::Init()
 
     m_net = readNetFromDarknet(m_modelConfiguration, m_modelWeights);
 
-    // cap.open(0);
-    imread()
+    cap.open(0);
     cap.set(CAP_PROP_FRAME_WIDTH ,640); // 320,640,1920
     cap.set(CAP_PROP_FRAME_HEIGHT,480);//240,480,1080
     m_WinName = "Deep learning object detection in OpenCV";
@@ -73,7 +72,6 @@ int Detector::Process()
 		return -1;
 	}
     blobFromImage(m_frame, m_blob, 1/255.0, cv::Size(416, 416), Scalar(0,0,0), true, false);
-
     
     m_net.setInput(m_blob); //Sets the input to the network
 
@@ -180,7 +178,6 @@ void Detector::PostProcess(Mat& frame, const vector<Mat>& outs)
         if(classIds[idx] == 1)
         {
             m_goaltopl = true;
-            m_detectbottom = false;
             Postopl.X = centerbox.x ;
             Postopl.Y = centerbox.y ;
             cout<<"class : "<<classIds[idx]<<endl;
@@ -191,20 +188,16 @@ void Detector::PostProcess(Mat& frame, const vector<Mat>& outs)
         if(classIds[idx] == 2)
         {
             m_goalbottomr = true;
-            m_detectbottom = false;
             Posbottomr.X = centerbox.x ;
             Posbottomr.Y = centerbox.y ;
             cout<<"class : "<<classIds[idx]<<endl;
             cout<<"pojok bawah kanan  "<<endl;
-            cout<<"X     : "<<box1.x<<endl;
-            cout<<"y     : "<<box1.y<<endl;
             // cout<<"X     : "<<centerbox.x<<endl;
             // cout<<"y     : "<<centerbox.y<<endl;
         }
         if(classIds[idx] == 3)
         {
             m_goalbottoml = true;
-            m_detectbottom = false;
             cout<<m_goalbottoml<<endl;
             Posbottoml.X = centerbox.x ;
             Posbottoml.Y = centerbox.y ;
@@ -261,7 +254,7 @@ void Detector::PostProcess(Mat& frame, const vector<Mat>& outs)
             m_goal = true;
         }
         
-        else if(m_goaltopl == true && m_goaltopl == true){
+        else if(m_goaltopl == true && m_goaltopr == true){
             
             m_goalPos.X = (Postopr.X + Postopl.X)/2 ;
             m_goalPos.Y = (Postopr.Y + Postopl.Y)/2 ;
@@ -279,25 +272,25 @@ void Detector::PostProcess(Mat& frame, const vector<Mat>& outs)
 
 
 
-int Detector::Tracker(bool Object, Point2D PosX, Point2D PosY)
-{
-    if(( PosX.X <= 0 && PosY.Y <=0)) {
-		m_objectcount++;
-		// NOT found
-		if(m_objectcount>m_objectcountMax)
-		{
-			PosX.X = -1.5;//-1;
-			PosY.Y = -1.5;//-1;
-			object = false;
-		}
-	} 
-	else
-	{
-		m_objectcount = 0;					
-		object = true;
-	}
-	return object;
-}
+// int Detector::Tracker(bool Object, Point2D PosX, Point2D PosY)
+// {
+//     if(( PosX.X <= 0 && PosY.Y <=0)) {
+// 		m_objectcount++;
+// 		// NOT found
+// 		if(m_objectcount>m_objectcountMax)
+// 		{
+// 			PosX.X = -1.5;//-1;
+// 			PosY.Y = -1.5;//-1;
+// 			object = false;
+// 		}
+// 	} 
+// 	else
+// 	{
+// 		m_objectcount = 0;					
+// 		object = true;
+// 	}
+// 	return object;
+// }
 
 
 vector<String> Detector::GetOutputsNames(const Net& net)
@@ -324,13 +317,12 @@ bool Detector::GetGoal()
     return m_goal;
 }
 
-
 double Detector::GetGoalX()
 {
-    return m_goalPos.x;
+    return m_goalPos.X;
 }
 
 double Detector::GetGoalY()
 {
-    return m_goalPos.y;
+    return m_goalPos.Y;
 }
